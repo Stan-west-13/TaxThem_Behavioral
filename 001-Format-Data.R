@@ -3,7 +3,7 @@ library(dplyr)
 files <- list.files("../Intermediate Proj/Process EEG/EEG_ERP_Processing/Logfiles_append/",full.names = T)
 
 files_appended <- data.frame()
-
+saveRDS(files_appended, file = "data/files_appended.rds")
 for (file in files){
   tmp <- read.table(file, header = T)
   files_appended <- rbind(tmp,files_appended)
