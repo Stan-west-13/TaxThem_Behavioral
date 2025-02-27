@@ -18,17 +18,17 @@ files_appended_factored <- files_appended %>%
                                                        "Thematic_inhib",NA))))),
          counterbalance = factor(counterbalance,levels =c(1,2), labels =c("Them_first", "Tax_first") ),
          PPID = as.factor(subno),
-         trial_condition = as.factor(ifelse(cond == 0 & block == "Taxonomic_inhib", 
+         trial_condition = as.factor(ifelse(word_type == "filler" & block == "Taxonomic_inhib", 
                                             "FillTax", 
-                                            ifelse(cond == 1 & block == "Thematic_inhib", 
+                                            ifelse(word_type == "thematic" & block == "Thematic_inhib", 
                                                    "ThemN",
-                                                   ifelse(cond == 1 & block == "Taxonomic_inhib",
+                                                   ifelse(word_type == "thematic" & block == "Taxonomic_inhib",
                                                           "ThemP",
-                                                          ifelse(cond == 2 & block == "Thematic_inhib",
+                                                          ifelse(word_type == "taxonomic" & block == "Thematic_inhib",
                                                                  "TaxP",
-                                                                 ifelse(cond == 2 & block == "Taxonomic_inhib",
+                                                                 ifelse(word_type == "taxonomic" & block == "Taxonomic_inhib",
                                                                         "TaxN",
-                                                                        ifelse(cond == 0 & block == "Thematic_inhib",
+                                                                        ifelse(word_type == "filler" & block == "Thematic_inhib",
                                                                                "FillThem",NA)))))))) %>%
   relocate(PPID, trial_condition,word_type, block, counterbalance, is_correct, button,rt,running_clock = time,order) %>%
   #filter(!button == "unknown") %>%
@@ -62,11 +62,8 @@ plot_df <- files_appended_factored %>%
          starts_with("mean")) %>%
   unique()
 
-ggplot(plot_df, aes(x = word_type, y = accuracy_wordType_PPID))+
-  geom_violin()+
-  geom_point()+
-  geom_line(aes(group = PPID))+
-  facet_wrap(~block)
+ggplot(plot_df, aes(x = trial_condition, y = accuracy_trialType))+
+  geom_point()
 
 ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
   geom_point()
