@@ -31,7 +31,7 @@ files_appended_factored <- files_appended %>%
                                                                         ifelse(cond == 0 & block == "Thematic_inhib",
                                                                                "FillThem",NA)))))))) %>%
   relocate(PPID, trial_condition,word_type, block, counterbalance, is_correct, button,rt,running_clock = time,order) %>%
- # filter(!button == "unknown") %>%
+  #filter(!button == "unknown") %>%
   select(-cond,-correct,-subno) %>%
   group_by(PPID) %>%
   mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
@@ -67,5 +67,9 @@ ggplot(plot_df, aes(x = word_type, y = accuracy_wordType_PPID))+
   geom_point()+
   geom_line(aes(group = PPID))+
   facet_wrap(~block)
+
+ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
+  geom_point()
+
 
 
