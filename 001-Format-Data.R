@@ -1,5 +1,6 @@
 library(dplyr)
 library(ggplot2)
+library(ez)
 files_appended <- readRDS("data/files_appended.rds")
 
 files_appended$correct <- ifelse(files_appended$correct == 2, 0, files_appended$correct)
@@ -8,7 +9,7 @@ files_appended$correct <- ifelse(files_appended$correct == 2, 0, files_appended$
 files_appended_factored <- files_appended %>%
   mutate(button = factor(button, levels = c(1,2,3,4), labels = c('p','n','unknown','unknown')),
          word_type = factor(cond, labels =c("filler", "thematic","taxonomic") , levels =c(0,1,2)),
-         is_correct = factor(correct,levels = c(0,1) , labels =c(FALSE,TRUE)),
+         is_correct = ifelse(correct == 0, FALSE,TRUE),
          block = as.factor(ifelse(block == 1 & counterbalance == 1,
                                   "Thematic_inhib", 
                                   ifelse(block == 1 & counterbalance == 2, 
@@ -33,24 +34,27 @@ files_appended_factored <- files_appended %>%
                                                                                "FillThem",NA)))))))) %>%
   relocate(PPID, trial_condition,word_type, block, counterbalance, is_correct, button,rt,running_clock = time,order) %>%
   #filter(!button == "unknown") %>%
-  select(-cond,-correct,-subno) %>%
-  group_by(PPID) %>%
-  mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
-         mean_rt_participant = mean(rt)) %>%
-  group_by(trial_condition) %>%
-  mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
-         mean_rt_trialType = mean(rt)) %>%
-  group_by(counterbalance,.add = TRUE) %>%
-  mutate(accuracy_trialType_counterbalance = sum(is_correct == TRUE)/n()) %>%
-  ungroup() %>%
-  group_by(PPID,word_type, block) %>%
-  mutate(accuracy_wordType_PPID = sum(is_correct == TRUE)/n()) %>%
-  ungroup()
+  select(-cond,-correct,-subno)
   
 
 
   
 saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
+
+
+
+summary_stats <- files_appended_factored %>%
+  group_by(PPID) %>%
+  mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
+         mean_rt_participant = mean(rt)) %>%
+  group_by(trial_condition, .add = TRUE) %>%
+  mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
+         mean_rt_trialType = mean(rt)) %>%
+  ungroup() %>%
+  group_by(PPID,block,word_type) %>%
+  mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n()) %>%
+  ungroup()
+
 
 
 plot_df <- files_appended_factored %>%
@@ -62,6 +66,9 @@ plot_df <- files_appended_factored %>%
          starts_with("accuracy"),
          starts_with("mean")) %>%
   unique()
+
+ggplot(files_appended_factored, aes(x = is_correct, fill = trial_condition))+
+  geom_bar(stat = "count",position = "dodge")
 
 ggplot(plot_df, aes(x = trial_condition, y = accuracy_trialType))+
   geom_point()
@@ -78,6 +85,28 @@ ggplot(plot_df %>%
 
 ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
   geom_point()
+
+anova_df <- summary_stats %>%
+  select(PPID, accuracy_block_wordtype_ppid,block,word_type,trial_condition,counterbalance) %>%
+  unique() %>%
+  mutate(z_acc = (accuracy_block_wordtype_ppid-mean(accuracy_block_wordtype_ppid))/sd(accuracy_block_wordtype_ppid)) %>%
+  filter(!z_acc <= -3)
+
+m <- ezANOVA(data = anova_df,
+             dv = accuracy_block_wordtype_ppid,
+             within = .(block, word_type),
+             wid = PPID)
+m
+
+anova_df %>%
+  group_by(word_type,block) %>%
+  summarize(means = mean(accuracy_block_wordtype_ppid))
+
+
+ggplot(anova_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid, color = block))+
+  geom_point(stat = "summary", fun = "mean")+
+  facet_wrap(~counterbalance)
+
 
 
 ggplot(plot_df, aes(x = word_type, y = accuracy_wordType_PPID, color = block))+
