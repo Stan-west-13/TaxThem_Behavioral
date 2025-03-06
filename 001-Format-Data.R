@@ -39,7 +39,7 @@ files_appended_factored <- files_appended %>%
 
 
   
-saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
+#saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
 
 
 
@@ -57,7 +57,7 @@ summary_stats <- files_appended_factored %>%
 
 
 
-plot_df <- files_appended_factored %>%
+plot_df <- summary_stats %>%
   select(PPID, 
          word_type,
          block, 
@@ -86,6 +86,13 @@ ggplot(plot_df %>%
 ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
   geom_point()
 
+
+ggplot(plot_df %>% 
+         mutate(trial_condition = factor(trial_condition, 
+                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = mean_rt_trialType))+
+  geom_bar(stat = "summary", fun = "mean")
+
+
 anova_df <- summary_stats %>%
   select(PPID, accuracy_block_wordtype_ppid,block,word_type,trial_condition,counterbalance) %>%
   unique() %>%
@@ -106,13 +113,6 @@ anova_df %>%
 ggplot(anova_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid, color = block))+
   geom_point(stat = "summary", fun = "mean")+
   facet_wrap(~counterbalance)
-
-
-
-ggplot(plot_df, aes(x = word_type, y = accuracy_wordType_PPID, color = block))+
-  geom_point(stat = "summary", fun = "mean")
-
-
 
 
 
