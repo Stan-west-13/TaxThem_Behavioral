@@ -39,7 +39,7 @@ files_appended_factored <- files_appended %>%
 
 
   
-saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
+#saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
 
 
 
@@ -57,7 +57,7 @@ summary_stats <- files_appended_factored %>%
 
 
 
-plot_df <- files_appended_factored %>%
+plot_df <- summary_stats %>%
   select(PPID, 
          word_type,
          block, 
