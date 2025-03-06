@@ -4,6 +4,7 @@ files_appended <- readRDS("data/files_appended.rds")
 
 files_appended$correct <- ifelse(files_appended$correct == 2, 0, files_appended$correct)
 
+
 files_appended_factored <- files_appended %>%
   mutate(button = factor(button, levels = c(1,2,3,4), labels = c('p','n','unknown','unknown')),
          word_type = factor(cond, labels =c("filler", "thematic","taxonomic") , levels =c(0,1,2)),
@@ -65,8 +66,30 @@ plot_df <- files_appended_factored %>%
 ggplot(plot_df, aes(x = trial_condition, y = accuracy_trialType))+
   geom_point()
 
+
+ggplot(plot_df %>% 
+         mutate(trial_condition = factor(trial_condition, 
+                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = accuracy_trialType))+
+  geom_bar(stat = "summary", fun = "mean") +
+  coord_cartesian(ylim = c(0.65,1)) 
+
+
+
+
 ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
   geom_point()
+
+
+ggplot(plot_df, aes(x = word_type, y = accuracy_wordType_PPID, color = block))+
+  geom_point(stat = "summary", fun = "mean")
+
+
+
+
+
+
+
+
 
 
 
