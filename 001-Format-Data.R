@@ -67,13 +67,9 @@ plot_df <- summary_stats %>%
          starts_with("mean")) %>%
   unique()
 
-ggplot(files_appended_factored, aes(x = is_correct, fill = trial_condition))+
-  geom_bar(stat = "count",position = "dodge")
-
-ggplot(plot_df, aes(x = trial_condition, y = accuracy_trialType))+
-  geom_point()
 
 
+## Barplot of accuracy by trial condition
 ggplot(plot_df %>% 
          mutate(trial_condition = factor(trial_condition, 
                                          levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = accuracy_trialType))+
@@ -82,9 +78,20 @@ ggplot(plot_df %>%
 
 
 
+## Barplot of response time by trial condition
+ggplot(plot_df %>% 
+         mutate(trial_condition = factor(trial_condition, 
+                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = mean_rt_trialType))+
+  geom_bar(stat = "summary", fun = "mean")
 
-ggplot(plot_df, aes(x = trial_condition, y = mean_rt_trialType))+
-  geom_point()
+
+## Accuracy by word type and block
+
+ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
+  geom_bar(stat = "summary", fun = "mean", position = "dodge")
+
+
+
 
 
 ggplot(plot_df %>% 
