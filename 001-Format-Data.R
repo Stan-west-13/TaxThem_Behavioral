@@ -66,7 +66,8 @@ summary_stats <- files_appended_factored %>%
          mean_rt_trialType = mean(rt)) %>%
   ungroup() %>%
   group_by(PPID,block,word_type) %>%
-  mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n()) %>%
+  mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n(),
+         mean_rt_block_wordtype_ppid = mean(rt)) %>%
   ungroup()
 
 
@@ -104,6 +105,16 @@ ggplot(plot_df %>%
 ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
   geom_bar(stat = "summary", fun = "mean", position = "dodge")
 
+## Order effects of accuracy
+ggplot(plot_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid))+
+  geom_point(stat = "summary", fun = "mean", aes(color = block, group = block))+
+  facet_wrap(~counterbalance)
+
+## Order effects of rt
+ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
+  geom_point(stat = "summary", fun = "mean", aes(color = block, group = block))+
+  facet_wrap(~counterbalance)
+
 
 
 
@@ -125,9 +136,7 @@ anova_df %>%
   summarize(means = mean(accuracy_block_wordtype_ppid))
 
 
-ggplot(anova_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid))+
-  geom_point(stat = "summary", fun = "mean", aes(color = block, group = block))+
-  facet_wrap(~counterbalance)
+
 
 
 
