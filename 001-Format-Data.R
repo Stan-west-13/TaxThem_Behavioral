@@ -56,7 +56,7 @@ summary_stats <- files_appended_factored %>%
   ungroup()
 
 
-
+## Dataframe for plotting descriptives
 plot_df <- summary_stats %>%
   select(PPID, 
          word_type,
@@ -94,12 +94,6 @@ ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = bloc
 
 
 
-ggplot(plot_df %>% 
-         mutate(trial_condition = factor(trial_condition, 
-                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = mean_rt_trialType))+
-  geom_bar(stat = "summary", fun = "mean")
-
-
 anova_df <- summary_stats %>%
   select(PPID, accuracy_block_wordtype_ppid,block,word_type,trial_condition,counterbalance) %>%
   unique() %>%
@@ -117,8 +111,8 @@ anova_df %>%
   summarize(means = mean(accuracy_block_wordtype_ppid))
 
 
-ggplot(anova_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid, color = block))+
-  geom_point(stat = "summary", fun = "mean")+
+ggplot(anova_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid))+
+  geom_point(stat = "summary", fun = "mean", aes(color = block, group = block))+
   facet_wrap(~counterbalance)
 
 
