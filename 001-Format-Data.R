@@ -3,7 +3,21 @@ library(ggplot2)
 library(ez)
 files_appended <- readRDS("data/files_appended.rds")
 
+## Values of 2 indicate that the participant pressed the "unsure" button. We are 
+## counting this as incorrect for our purposes.
 files_appended$correct <- ifelse(files_appended$correct == 2, 0, files_appended$correct)
+
+
+
+#### Metadata codes
+## Button codes: 1 - related response; 2 - unrelated response, 3 - unsure, 4 - unsure 
+## Word-pair type codes: 0 - filler; 1 - thematic; 2 - taxonomic
+## is_correct codes: 0 - FALSE, 1 - TRUE
+## Block codes: Block 1 & Counterbalance 1 - Thematic inhibition; Block 2 & Counterbalance 1 - Taxonomic inhibition
+##              Block 1 & Counterbalance 2 - Taxonomic inhibition; Block 2 & Counterbalance 2 - Thematic inhibition
+## Counterbalance codes: 1 - Thematic inhibition first; 2 - Taxonomic inhibition first
+## Trial condition codes: Indicate the type of word pair presented, and the correct response given the block. 
+##                        Filler trials are just labeled according to which block they are in. 
 
 
 files_appended_factored <- files_appended %>%
@@ -42,7 +56,7 @@ files_appended_factored <- files_appended %>%
 #saveRDS(files_appended_factored, file = paste0("data/","logfiles_metadata_",Sys.Date(),".rds"))
 
 
-
+## Computing participant and trialType-wise RT and accuracy means
 summary_stats <- files_appended_factored %>%
   group_by(PPID) %>%
   mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
@@ -93,7 +107,7 @@ ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = bloc
 
 
 
-
+## Junk ANOVA setup example
 anova_df <- summary_stats %>%
   select(PPID, accuracy_block_wordtype_ppid,block,word_type,trial_condition,counterbalance) %>%
   unique() %>%
