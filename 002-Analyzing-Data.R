@@ -45,11 +45,12 @@ pairwise.t.test(plot_df$accuracy_trialType, plot_df$trial_condition, paired = TR
 
 #I'm just looking at the rt on its own with the block for now
 by(df$rt, df$block, FUN = describe)
-#sd is quite high 
+by(df$rt, df$block, FUN = summary)
+#sd is quite high and mean explains data very differently from 1Q, median, and 3Q 
 
 #I want to see a count of rt occurance overall
 rtOverall_plot <- ggplot(df, aes(x = rt)) + geom_histogram(binwidth = 25)
-rtOverall_plot #+ coord_cartesian(xlim = c(0,5000)) 
+rtOverall_plot + coord_cartesian(xlim = c(0,5000)) 
 summary(df$rt) 
 sd(df$rt)
 #very large maximums (e.g. 32745 ms) that don't aline with mean
@@ -57,7 +58,7 @@ sd(df$rt)
 
 #plotting rt by block
 relationType_RT_plot <- ggplot(df, aes(x = block, y = rt)) + geom_boxplot()
-relationType_RT_plot + coord_cartesian(ylim = c(0,5000))
+relationType_RT_plot #+ coord_cartesian(ylim = c(0,5000))
 #lots of variability in rt (may not matter but just wanted too look into it)
 
 #doing pairwise t test (dependent t test) to see if difference in mean is significant
@@ -71,13 +72,17 @@ pairwise.t.test(df$rt, df$block, paired = TRUE, p.adjust.method = "bonferroni")
 
 #Looking at descriptive stats by trial
 by(df$rt, df$trial_condition, FUN = describe)
+by(df$rt, df$trial_condition, FUN = summary)
+by(df$rt, df$trial_condition, FUN = sd)
+#the raw rt means are very different (larger by ~200 ms) from what is described 
+#by the 1Q, median, and 3Q
+#sd is very high min=736 max=1418
 
 #plotting rt by trial 
 responseType_RT_plot <- ggplot(df, aes(x = trial_condition, y = rt)) + geom_boxplot()
 responseType_RT_plot + coord_cartesian(ylim = c(0,1500))
 
 #Is there a significant difference in rt means between trial conditions
-
 responseType_RT_model <- ezANOVA(data = df,
                                  dv = rt,
                                  wid = PPID,
@@ -90,8 +95,9 @@ responseType_RT_model
 temp_rt <- as.factor(df$rt)
 pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
 
+#I want to look at descriptive stats for PPID 20 and 16
+
 
 #OKAY, so now I'm going to do the stats for RT being influenced by both relation type
 # and response type using plot_df 
-
 
