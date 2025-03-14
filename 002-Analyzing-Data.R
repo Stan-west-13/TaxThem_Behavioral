@@ -3,8 +3,8 @@
 
 library(pastecs); library(psych); library(ez) ; library(tidyverse)
 
+#metadata 
 df <- readRDS("data/logfiles_metadata_2025-03-06.rds")
-#plot_df has accuracy and rt for analysis
 
 ## Computing participant and trialType-wise RT and accuracy means
 summary_stats <- df %>%
@@ -31,6 +31,7 @@ plot_df <- summary_stats %>%
          starts_with("accuracy"),
          starts_with("mean")) %>%
   unique()
+
 
 #-----------
 #accuracy by trial condition in each block type (taxonomic_inhib and thematic_inhib) 
@@ -59,6 +60,18 @@ pairwise.t.test(plot_df$accuracy_trialType, plot_df$trial_condition, paired = TR
 #FillThem: TaxP= p<.001, ThemP= p<.05
 #TaxP: ThemN= p<.05
 #Rest: Not significant
+
+#break down by block and word interaction
+accuracytT <- ezANOVA(data = plot_df,
+                            dv = accuracy_trialType,
+                            wid = PPID,
+                            within = .(block, word_type),
+                            detailed = TRUE)
+accuracytT
+
+df %>%
+  group_by(word_type, block) %>%
+  summarize(accuracy = sum(is_correct)/n())
 
 
 #----------
@@ -104,9 +117,10 @@ by(df$rt, df$trial_condition, FUN = sd, na.rm = TRUE)
 #by the 1Q, median, and 3Q
 #sd is very high min=736 max=1418
 
+
 #plotting rt by trial 
 responseType_RT_plot <- ggplot(df, aes(x = trial_condition, y = rt)) + geom_boxplot()
-responseType_RT_plot + coord_cartesian(ylim = c(0,1500))
+responseType_RT_plot #+ coord_cartesian(ylim = c(0,1500))
 
 #Is there a significant difference in rt means between trial conditions
 responseType_RT_model <- ezANOVA(data = df,
@@ -122,14 +136,115 @@ temp_rt <- as.factor(df$rt)
 #----pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
 
 
-#descriptive stats by participant 
-#if all participants are hanging around average 
-#remove by participant average response 
-#remove below 150ms??
-#look into log reaction time and transform rt
-
 #I want to look at descriptive stats for PPIDs, especially 20 and 16
 by(df$rt, df$PPID, FUN = describe, na.rm = TRUE)
 by(df$rt, df$PPID, FUN = summary, na.rm = TRUE)
 by(df$rt, df$PPID, FUN = sd, na.rm = TRUE)
+
+
+#------------------------------------------
+# Removed outliers and re-running analysis
+#------------------------------------------
+
+#participants that are 3 sd above the grand mean rt
+#dont group by anything; z score rt and filter for everything 3 z scores below the mean
+#data frame, add z score column, then filter anything lower than z <3 
+#add box plots for outliers 
+
+# Removing outliers (remove below 150 ms to 3 sd from grand mean RT) and making
+#new dataframes for analysis
+
+#look at within scores per participant, remove those outliers
+newDf <- df %>%
+  filter(rt > 150) %>%
+  group_by(PPID) %>%
+  mutate(accuracy_PPID = sum((is_correct == TRUE)/n()),
+         mean_rt_PPID = mean(rt), 
+         sd_rt_PPID = sd(rt),
+         zscore_rt_PPID = ((rt - mean_rt_PPID)/sd_rt_PPID)) %>%
+  filter(zscore_rt_PPID <= 3)
+  group_by(trial_condition, .add = TRUE) %>%
+  mutate(accuracy_trialType_new = sum((is_correct == TRUE)/n()),
+         mean_rt_trialType_new = mean(rt)) %>%
+  ungroup() %>%
+  group_by(PPID,block,word_type) %>%
+  mutate(accuracy_block_wordtype_ppid_new = sum((is_correct == TRUE)/n()),
+         mean_rt_block_wordtype_ppid_new = mean(rt)) %>%
+  ungroup() 
+
+# organizing newDf
+new_plot_df <- newDf %>%
+  select(PPID, 
+         word_type,
+         block, 
+         trial_condition,
+         counterbalance,
+         rt,
+         starts_with("accuracy"),
+         starts_with("mean"), 
+         starts_with("sd")) %>%
+  unique()
+  
+# Redoing analysis without outliers
+
+#-----------------------
+#Accuracy 
+#-----------------------
+
+by(new_plot_df$accuracy_trialType_new, new_plot_df$trial_condition, FUN = describe)
+
+#box plot of accuracy by trial type
+accuracyTT_new_bar <- ggplot(new_plot_df, aes(x = trial_condition, y = accuracy_trialType_new, colour = trial_condition)) + 
+  stat_summary(aes(y = accuracy_trialType_new), fun = "mean", geom = "bar") + 
+  coord_cartesian(ylim = c(.60,1)) + labs(x= "Trial Condition", y= "Accuracy", title = "Accuracy by Trial Condition") +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
+accuracyTT_new_bar
+
+
+accuracyTT_new_model <- ezANOVA(data = new_plot_df,
+                            dv = accuracy_trialType_new,
+                            wid = PPID,
+                            within = trial_condition,
+                            detailed = TRUE)
+accuracyTT_new_model
+
+?pairwise.t.test
+
+pairwise.t.test(new_plot_df$accuracy_trialType_new, new_plot_df$trial_condition, paired = TRUE)
+
+
+m <- aov(accuracy_trialType_new ~ trial_condition + Error(PPID/trial_condition), data = new_plot_df)
+summary(m)
+
+
+
+
+#--------------
+# RT
+#--------------
+
+by(new_plot_df$rt, new_plot_df$PPID, FUN = describe)
+
+
+
+
+
+#----TTA word association----
+#using cutoff quicker 150 ms and what is 3 sd from the grand mean
+# 150 ms and 3022.991 ms
+(sd(df$rt)) * 3
+
+#remove participants with 3 sd from average 
+#anything ran after group by run within variable
+df %>%
+  group_by(PPID) %>%
+  mutate(mean_PPID = mean(rt), .after=PPID) %>%
+  ungroup() %>%
+  mutate(mean_grand = mean(rt),
+         sd_grand = sd(rt),
+         z = (mean_PPID - mean_grand)/(sd_grand)) %>%
+  ungroup() %>%
+  filter(z < 3) %>%
+  view()
+
 
