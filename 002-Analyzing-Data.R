@@ -101,3 +101,11 @@ pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
 #OKAY, so now I'm going to do the stats for RT being influenced by both relation type
 # and response type using plot_df 
 
+#descriptive stats by participant 
+#if all participants are hanging around average 
+#remove by participant average response 
+#remove below 150ms??
+#look into log reaction time and transform rt
+
+by(df$rt, df$PPID, FUN = summary)
+group_by(df$PPID)
