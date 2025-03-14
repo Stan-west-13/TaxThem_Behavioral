@@ -1,11 +1,36 @@
 #git fetch in terminal for status of online version then git status
 #then git status (branch behind or up to date)
 
-library(pastecs); library(psych)
+library(pastecs); library(psych); library(ez) ; library(tidyverse)
 
 df <- readRDS("data/logfiles_metadata_2025-03-06.rds")
 #plot_df has accuracy and rt for analysis
 
+## Computing participant and trialType-wise RT and accuracy means
+summary_stats <- df %>%
+  group_by(PPID) %>%
+  mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
+         mean_rt_participant = mean(rt)) %>%
+  group_by(trial_condition, .add = TRUE) %>%
+  mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
+         mean_rt_trialType = mean(rt)) %>%
+  ungroup() %>%
+  group_by(PPID,block,word_type) %>%
+  mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n(),
+         mean_rt_block_wordtype_ppid = mean(rt)) %>%
+  ungroup()
+
+
+## Dataframe for plotting descriptives
+plot_df <- summary_stats %>%
+  select(PPID, 
+         word_type,
+         block, 
+         trial_condition,
+         counterbalance,
+         starts_with("accuracy"),
+         starts_with("mean")) %>%
+  unique()
 
 #-----------
 #accuracy by trial condition in each block type (taxonomic_inhib and thematic_inhib) 
@@ -44,13 +69,14 @@ pairwise.t.test(plot_df$accuracy_trialType, plot_df$trial_condition, paired = TR
 #So, I'll use "block" as IV and "rt" as DV 
 
 #I'm just looking at the rt on its own with the block for now
-by(df$rt, df$block, FUN = describe)
-by(df$rt, df$block, FUN = summary)
+by(df$rt, df$block, FUN = describe, na.rm = TRUE)
+by(df$rt, df$block, FUN = summary, na.rm = TRUE)
 #sd is quite high and mean explains data very differently from 1Q, median, and 3Q 
 
 #I want to see a count of rt occurance overall
 rtOverall_plot <- ggplot(df, aes(x = rt)) + geom_histogram(binwidth = 25)
-rtOverall_plot + coord_cartesian(xlim = c(0,5000)) 
+rtOverall_plot + coord_cartesian(xlim = c(0,5000))  
+
 summary(df$rt) 
 sd(df$rt)
 #very large maximums (e.g. 32745 ms) that don't aline with mean
@@ -63,7 +89,7 @@ relationType_RT_plot #+ coord_cartesian(ylim = c(0,5000))
 
 #doing pairwise t test (dependent t test) to see if difference in mean is significant
 #can't get t.test to work in new update, so using this:
-pairwise.t.test(df$rt, df$block, paired = TRUE, p.adjust.method = "bonferroni")
+#---pairwise.t.test(df$rt, df$block, paired = TRUE, p.adjust.method = "bonferroni")
 #p>.05, not significant 
 
 
@@ -71,9 +97,9 @@ pairwise.t.test(df$rt, df$block, paired = TRUE, p.adjust.method = "bonferroni")
 #I'm interpreting response type as trial_condition
 
 #Looking at descriptive stats by trial
-by(df$rt, df$trial_condition, FUN = describe)
-by(df$rt, df$trial_condition, FUN = summary)
-by(df$rt, df$trial_condition, FUN = sd)
+by(df$rt, df$trial_condition, FUN = describe, na.rm = TRUE)
+by(df$rt, df$trial_condition, FUN = summary, na.rm = TRUE)
+by(df$rt, df$trial_condition, FUN = sd, na.rm = TRUE)
 #the raw rt means are very different (larger by ~200 ms) from what is described 
 #by the 1Q, median, and 3Q
 #sd is very high min=736 max=1418
@@ -93,13 +119,8 @@ responseType_RT_model
 
 #funnnn for some reason pairwise t test isn't working
 temp_rt <- as.factor(df$rt)
-pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
+#----pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
 
-#I want to look at descriptive stats for PPID 20 and 16
-
-
-#OKAY, so now I'm going to do the stats for RT being influenced by both relation type
-# and response type using plot_df 
 
 #descriptive stats by participant 
 #if all participants are hanging around average 
@@ -107,5 +128,8 @@ pairwise.t.test(temp_rt, df$trial_condition, paired = TRUE)
 #remove below 150ms??
 #look into log reaction time and transform rt
 
-by(df$rt, df$PPID, FUN = summary)
-group_by(df$PPID)
+#I want to look at descriptive stats for PPIDs, especially 20 and 16
+by(df$rt, df$PPID, FUN = describe, na.rm = TRUE)
+by(df$rt, df$PPID, FUN = summary, na.rm = TRUE)
+by(df$rt, df$PPID, FUN = sd, na.rm = TRUE)
+
