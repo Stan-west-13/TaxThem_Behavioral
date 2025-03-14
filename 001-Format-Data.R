@@ -92,7 +92,7 @@ ggplot(plot_df %>%
          mutate(trial_condition = factor(trial_condition, 
                                          levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = accuracy_trialType, fill = trial_condition))+
   geom_bar(stat = "summary", fun = "mean", alpha = 0.5) +
-  geom_point(aes(color = trial_condition))+
+  geom_jitter(aes(color = trial_condition))+
   coord_cartesian(ylim = c(0.65,1)) 
 
 
