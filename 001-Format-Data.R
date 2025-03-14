@@ -60,8 +60,11 @@ files_appended_factored <- files_appended %>%
 summary_stats <- files_appended_factored %>%
   group_by(PPID) %>%
   mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
-         mean_rt_participant = mean(rt)) %>%
-  group_by(trial_condition, .add = TRUE) %>%
+         mean_rt_participant = mean(rt),
+         z_rt_pp = (rt - mean_rt_participant)/sd(rt)) %>%
+  ungroup() %>%
+  filter(rt > 150, z_rt_pp < 3) %>%
+  group_by(PPID,trial_condition) %>%
   mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
          mean_rt_trialType = mean(rt)) %>%
   ungroup() %>%
@@ -87,8 +90,9 @@ plot_df <- summary_stats %>%
 ## Barplot of accuracy by trial condition
 ggplot(plot_df %>% 
          mutate(trial_condition = factor(trial_condition, 
-                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = accuracy_trialType))+
-  geom_bar(stat = "summary", fun = "mean") +
+                                         levels = c("TaxP","ThemP","TaxN", "ThemN", "FillTax", "FillThem"))), aes(x = trial_condition, y = accuracy_trialType, fill = trial_condition))+
+  geom_bar(stat = "summary", fun = "mean", alpha = 0.5) +
+  geom_point(aes(color = trial_condition))+
   coord_cartesian(ylim = c(0.65,1)) 
 
 
