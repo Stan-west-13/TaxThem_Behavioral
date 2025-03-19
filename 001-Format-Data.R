@@ -129,9 +129,13 @@ ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block
 
 ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
   geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
+  geom_errorbar(data = plot_df %>%
+                  group_by(word_type, block) %>%
+                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.5)+
   geom_point(aes(color = block, group = block),position = position_jitterdodge())+
   scale_fill_manual(values = c("#497882","#2A436E"))+
-  scale_color_manual(values = c("#497882","#2A436E"))
+  scale_color_manual(values = c("#497882","#2A436E"))+
+  lims(y = c(0.75,1))
 
 
 ## Order effects of accuracy
