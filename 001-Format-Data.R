@@ -70,10 +70,11 @@ summary_stats <- files_appended_factored %>%
   ungroup() %>%
   group_by(PPID,block,word_type) %>%
   mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n(),
-         mean_rt_block_wordtype_ppid = mean(rt),
-         se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(n()),
-         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(n())) %>%
-  ungroup()
+         mean_rt_block_wordtype_ppid = mean(rt)) %>%
+  ungroup() %>%
+  group_by(block,word_type) %>%
+  mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(n()),
+         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(n()))
 
 
 ## Dataframe for plotting descriptives
@@ -84,8 +85,10 @@ plot_df <- summary_stats %>%
          trial_condition,
          counterbalance,
          starts_with("accuracy"),
-         starts_with("mean")) %>%
-  unique()
+         starts_with("mean"),
+         starts_with("se")) %>%
+  unique() %>%
+  
 
 
 
@@ -109,10 +112,16 @@ ggplot(plot_df %>%
 
 ## Response time by word type and block
 ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block))+
-  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
-  geom_point(aes(color = block, group = block),position = position_jitterdodge())+
+  geom_bar(stat = "summary", fun.y = "mean", position = "dodge", alpha = 0.5)+
+  geom_errorbar(data = plot_df %>%
+                  group_by(word_type, block) %>%
+                  mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.5)+
+  geom_point(aes(color = block),position = position_jitterdodge())+
   scale_fill_manual(values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))
+
+
+
 
 
 
@@ -138,23 +147,20 @@ ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
 
 
 
-## Junk ANOVA setup example
-anova_df <- summary_stats %>%
-  select(PPID, accuracy_block_wordtype_ppid,block,word_type,trial_condition,counterbalance) %>%
-  unique() %>%
-  mutate(z_acc = (accuracy_block_wordtype_ppid-mean(accuracy_block_wordtype_ppid))/sd(accuracy_block_wordtype_ppid)) %>%
-  filter(!z_acc <= -3)
+##  ANOVA accuracy example
 
-m <- ezANOVA(data = anova_df,
+m_acc <- ezANOVA(data = summary_stats,
              dv = accuracy_block_wordtype_ppid,
              within = .(block, word_type),
              wid = PPID)
-m
+m_acc
 
-anova_df %>%
-  group_by(word_type,block) %>%
-  summarize(means = mean(accuracy_block_wordtype_ppid))
-
+## ANOVA rt example
+m_rt <- ezANOVA(data = files_appended_factored,
+                 dv = mean_rt_block_wordtype_ppid,
+                 within = .(block, word_type),
+                 wid = PPID)
+m_rt
 
 
 
