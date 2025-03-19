@@ -70,7 +70,9 @@ summary_stats <- files_appended_factored %>%
   ungroup() %>%
   group_by(PPID,block,word_type) %>%
   mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n(),
-         mean_rt_block_wordtype_ppid = mean(rt)) %>%
+         mean_rt_block_wordtype_ppid = mean(rt),
+         se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(n()),
+         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(n())) %>%
   ungroup()
 
 
@@ -104,10 +106,24 @@ ggplot(plot_df %>%
   geom_bar(stat = "summary", fun = "mean")
 
 
+
+## Response time by word type and block
+ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block))+
+  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
+  geom_point(aes(color = block, group = block),position = position_jitterdodge())+
+  scale_fill_manual(values = c("#497882","#2A436E"))+
+  scale_color_manual(values = c("#497882","#2A436E"))
+
+
+
 ## Accuracy by word type and block
 
 ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
-  geom_bar(stat = "summary", fun = "mean", position = "dodge")
+  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
+  geom_point(aes(color = block, group = block),position = position_jitterdodge())+
+  scale_fill_manual(values = c("#497882","#2A436E"))+
+  scale_color_manual(values = c("#497882","#2A436E"))
+
 
 ## Order effects of accuracy
 ggplot(plot_df, aes(x = trial_condition, y = accuracy_block_wordtype_ppid))+
