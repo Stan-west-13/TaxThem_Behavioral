@@ -89,7 +89,8 @@ plot_df <- summary_stats %>%
          starts_with("accuracy"),
          starts_with("mean"),
          starts_with("se")) %>%
-  unique()
+  unique() %>%
+  mutate(inhib_type = ifelse(trial_condition == "TaxN"|trial_condition == "ThemN", "inhib","stand"))
   
 
 
@@ -115,7 +116,7 @@ ggplot(plot_df %>%
 
 
 ## Response time by word type and block
-ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block))+
+ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block,pattern = inhib_type))+
   geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
@@ -128,7 +129,7 @@ ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block
        x = "Word Pair Type",
        y = "Mean Response Time",
        fill = "Condition")+
-  theme(legend.position = c(0.5,0.7,4),
+  theme(legend.position = c(0.5,0.7),
         legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
         text = element_text(size = 18),
         legend.key.size = unit(0.25,"cm"),
@@ -244,11 +245,14 @@ ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
 
 
 
+pairwise_t_test(data = summary_stats, mean_rt_block_wordtype_ppid~word_type, paired = T)
 
 
 
 
-
-
+remove.packages(c("ggplot2",'Rcpp', "data.table"))
+install.packages('Rcpp', dependencies = TRUE)
+install.packages('ggplot2', dependencies = TRUE)
+install.packages('data.table', dependencies = TRUE)
 
 
