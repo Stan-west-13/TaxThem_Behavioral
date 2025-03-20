@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(ez)
+source("R_functions/RM-2by2-ANOVA/rm_2by2_anova.R")
 files_appended <- readRDS("data/files_appended.rds")
 
 ## Values of 2 indicate that the participant pressed the "unsure" button. We are 
@@ -58,6 +59,7 @@ files_appended_factored <- files_appended %>%
 
 ## Computing participant and trialType-wise RT and accuracy means
 summary_stats <- files_appended_factored %>%
+  filter(!word_type == "filler") %>%
   group_by(PPID) %>%
   mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
          mean_rt_participant = mean(rt),
@@ -87,7 +89,7 @@ plot_df <- summary_stats %>%
          starts_with("accuracy"),
          starts_with("mean"),
          starts_with("se")) %>%
-  unique() %>%
+  unique()
   
 
 
@@ -110,32 +112,123 @@ ggplot(plot_df %>%
 
 
 
+
+
 ## Response time by word type and block
 ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block))+
-  geom_bar(stat = "summary", fun.y = "mean", position = "dodge", alpha = 0.5)+
+  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
                   mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.5)+
-  geom_point(aes(color = block),position = position_jitterdodge())+
-  scale_fill_manual(values = c("#497882","#2A436E"))+
-  scale_color_manual(values = c("#497882","#2A436E"))
-
-
-
-
-
+  geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
+  scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
+  scale_color_manual(values = c("#497882","#2A436E"))+
+  theme_bw()+
+  labs(title = "Mean Response Time",
+       x = "Word Pair Type",
+       y = "Mean Response Time",
+       fill = "Condition")+
+  theme(legend.position = c(0.5,0.7,4),
+        legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
+        text = element_text(size = 18),
+        legend.key.size = unit(0.25,"cm"),
+        rect = element_rect(fill= "transparent"))+
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave("Figures/Mean_rt.png")
 
 ## Accuracy by word type and block
-
 ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
   geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
-                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.5)+
-  geom_point(aes(color = block, group = block),position = position_jitterdodge())+
-  scale_fill_manual(values = c("#497882","#2A436E"))+
+                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.3)+
+  geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
+  scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
-  lims(y = c(0.75,1))
+  theme_bw()+
+  labs(title = "Mean Accuracy",
+       x = "Word Pair Type",
+       y = "Mean Accuracy",
+       fill = "Condition")+
+  theme(legend.position = c(0.5,0.2,4),
+        legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
+        text = element_text(size = 18),
+        legend.key.size = unit(0.25,"cm"),
+        rect = element_rect(fill = "transparent"))+
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave("Figures/Mean_Acc.png")
+
+
+
+
+
+## Accuracy-response time tradeoff
+
+ggplot(plot_df, aes(x = mean_rt_block_wordtype_ppid, y = accuracy_block_wordtype_ppid, color = word_type))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_grid(word_type~block)
+
+
+##  ANOVA accuracy example
+
+# From the dataset, specify subject ID, Dependent Variable, and 2 within-subject Factors 
+columns <- list(
+  sID = "PPID",     # subject ID
+  DV  = "accuracy_block_wordtype_ppid", # dependent variable
+  Fc1 = "block",      # within-subj factor 1
+  Fc2 = "word_type"   # within-subj factor 2
+)
+# Define plot label names, tilte, colors and what type of error bars to show on the plot
+param <- list(
+  y.label    = "Accuracy",
+  Fc1.label  = "Block",
+  Fc2.label  = "Word Type",
+  cat.color  = c('#DF4A56', '#5284a8'),
+  errorbar   = "se"  # can be either sd, se, or ci
+)
+# the plot title
+param$title <- sprintf("%s x %s interaction", param$Fc2.label, param$Fc1.label)
+
+result <- rm_2by2_anova(summary_stats,columns,param)
+
+m_acc <- ezANOVA(data = summary_stats,
+             dv = accuracy_block_wordtype_ppid,
+             within = .(block, word_type),
+             wid = PPID,detailed = T)
+m_acc
+
+summary_stats %>%
+  group_by(block) %>%
+  pairwise_t_test(accuracy_block_wordtype_ppid~word_type, paired = T)
+
+## ANOVA rt example
+# From the dataset, specify subject ID, Dependent Variable, and 2 within-subject Factors 
+columns <- list(
+  sID = "PPID",     # subject ID
+  DV  = "mean_rt_block_wordtype_ppid", # dependent variable
+  Fc1 = "block",      # within-subj factor 1
+  Fc2 = "word_type"   # within-subj factor 2
+)
+# Define plot label names, tilte, colors and what type of error bars to show on the plot
+param <- list(
+  y.label    = "RT",
+  Fc1.label  = "Block",
+  Fc2.label  = "Word Type",
+  cat.color  = c('#DF4A56', '#5284a8'),
+  errorbar   = "se"  # can be either sd, se, or ci
+)
+# the plot title
+param$title <- sprintf("%s x %s interaction", param$Fc2.label, param$Fc1.label)
+
+result <- rm_2by2_anova(summary_stats,columns,param)
+
+m_rt <- ezANOVA(data = summary_stats,
+                 dv = mean_rt_block_wordtype_ppid,
+                 within = .(block, word_type),
+                 wid = PPID)
+m_rt
+
 
 
 ## Order effects of accuracy
@@ -148,23 +241,6 @@ ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
   geom_point(stat = "summary", fun = "mean", aes(color = block, group = block))+
   facet_wrap(~counterbalance)
 
-
-
-
-##  ANOVA accuracy example
-
-m_acc <- ezANOVA(data = summary_stats,
-             dv = accuracy_block_wordtype_ppid,
-             within = .(block, word_type),
-             wid = PPID)
-m_acc
-
-## ANOVA rt example
-m_rt <- ezANOVA(data = files_appended_factored,
-                 dv = mean_rt_block_wordtype_ppid,
-                 within = .(block, word_type),
-                 wid = PPID)
-m_rt
 
 
 
