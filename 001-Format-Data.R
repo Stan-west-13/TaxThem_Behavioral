@@ -65,7 +65,7 @@ summary_stats <- files_appended_factored %>%
          mean_rt_participant = mean(rt),
          z_rt_pp = (rt - mean_rt_participant)/sd(rt)) %>%
   ungroup() %>%
-  filter(rt > 150, z_rt_pp < 3) %>%
+  #filter(rt > 150, z_rt_pp < 3) %>%
   group_by(PPID,trial_condition) %>%
   mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
          mean_rt_trialType = mean(rt)) %>%
@@ -248,11 +248,5 @@ ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
 pairwise_t_test(data = summary_stats, mean_rt_block_wordtype_ppid~word_type, paired = T)
 
 
-
-
-remove.packages(c("ggplot2",'Rcpp', "data.table"))
-install.packages('Rcpp', dependencies = TRUE)
-install.packages('ggplot2', dependencies = TRUE)
-install.packages('data.table', dependencies = TRUE)
 
 
