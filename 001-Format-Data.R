@@ -65,7 +65,7 @@ summary_stats <- files_appended_factored %>%
          mean_rt_participant = mean(rt),
          z_rt_pp = (rt - mean_rt_participant)/sd(rt)) %>%
   ungroup() %>%
-  filter(rt > 150, z_rt_pp < 3) %>%
+  #filter(rt > 150, z_rt_pp < 3) %>%
   group_by(PPID,trial_condition) %>%
   mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
          mean_rt_trialType = mean(rt)) %>%
@@ -89,7 +89,8 @@ plot_df <- summary_stats %>%
          starts_with("accuracy"),
          starts_with("mean"),
          starts_with("se")) %>%
-  unique()
+  unique() %>%
+  mutate(inhib_type = ifelse(trial_condition == "TaxN"|trial_condition == "ThemN", "inhib","stand"))
   
 
 
@@ -115,7 +116,7 @@ ggplot(plot_df %>%
 
 
 ## Response time by word type and block
-ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block))+
+ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block,pattern = inhib_type))+
   geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
@@ -128,7 +129,7 @@ ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block
        x = "Word Pair Type",
        y = "Mean Response Time",
        fill = "Condition")+
-  theme(legend.position = c(0.5,0.7,4),
+  theme(legend.position = c(0.5,0.7),
         legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
         text = element_text(size = 18),
         legend.key.size = unit(0.25,"cm"),
@@ -244,10 +245,7 @@ ggplot(plot_df, aes(x = trial_condition, y = mean_rt_block_wordtype_ppid))+
 
 
 
-
-
-
-
+pairwise_t_test(data = summary_stats, mean_rt_block_wordtype_ppid~word_type, paired = T)
 
 
 
