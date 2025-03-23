@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(ez)
+library(ggpattern)
 source("R_functions/RM-2by2-ANOVA/rm_2by2_anova.R")
 files_appended <- readRDS("data/files_appended.rds")
 
@@ -117,7 +118,11 @@ ggplot(plot_df %>%
 
 ## Response time by word type and block
 ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block,pattern = inhib_type))+
-  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
+  geom_bar_pattern(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5,
+                   pattern_fill = "black",
+                   pattern_alpha = 0.25)+
+  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"))+
+  guides(pattern = "none")+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
                   mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.5)+
@@ -138,8 +143,12 @@ ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block
 ggsave("Figures/Mean_rt.png")
 
 ## Accuracy by word type and block
-ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block))+
-  geom_bar(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5)+
+ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block,pattern = inhib_type))+
+  geom_bar_pattern(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5,
+                   pattern_fill = "black",
+                   pattern_alpha = 0.25)+
+  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"))+
+  guides(pattern = "none")+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
                   mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.3)+
@@ -147,7 +156,7 @@ ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = bloc
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
-  labs(title = "Mean Accuracy",
+  labs(title = "Hit Rate",
        x = "Word Pair Type",
        y = "Mean Accuracy",
        fill = "Condition")+
