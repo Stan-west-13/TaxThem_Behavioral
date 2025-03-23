@@ -30,7 +30,11 @@ d <- read.table("data/Pz_Cz_CPz_300_500.txt", header = T) %>%
 d_electrode_split <- split(d,d$electrode)
 
 map(d_electrode_split, function(x){
-  t.test(x$mean_amp[x$bin == "All_Stand"],x$mean_amp[x$bin == "All_Fill"],paired = T)
+  x <- x %>%
+    filter(word_type == "All") %>%
+    filter(condition == "Fill" | condition == "Stand")
+  
+  t.test(x$mean_amp[x$condition == "Fill"], x$mean_amp[x$condition == "Stand"],paired = T)
 })
 
 
@@ -69,17 +73,6 @@ map(d_electrode_split, function(x){
 
 
 
-## ANOVA between Two standard and Inhibition all
-map(d_electrode_split, function(x){
-  cont <- x %>%
-    filter(bin == "Them_Stand"|bin == "Tax_Stand"|bin == "All_Inhib")
-  m <- ezANOVA(data = cont,
-               wid = PPID,
-               within = bin,
-               dv = mean_amp)
-  t <- pairwise.t.test(cont$mean_amp,cont$bin, paired = T, pool.sd = F,p.adjust.method = "bonferroni")
-  return(list(ANOVAs = m,t = t))
-})
 
 
 
