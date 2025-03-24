@@ -4,6 +4,10 @@ library(stringr)
 library(purrr)
 library(ez)
 library(rstatix)
+
+## Load in data and change names
+# condition - is it inhibition, standard, or filler trial
+# word-type - is it taxonomic, thematic, or all collapsed?
 d <- read.table("data/Pz_Cz_CPz_300_500.txt", header = T) %>%
   pivot_longer(cols = starts_with("bin"),
                names_to = c("bin","electrode"),
@@ -25,10 +29,10 @@ d <- read.table("data/Pz_Cz_CPz_300_500.txt", header = T) %>%
                names_sep = "_",
                values_to = "mean_amp")
 
-
-## T-test Related vs unrelated
+### Split data by electrode to use with map(). Run all electrodes at once.
 d_electrode_split <- split(d,d$electrode)
 
+## T-test Related vs unrelated
 map(d_electrode_split, function(x){
   x <- x %>%
     filter(word_type == "All") %>%
