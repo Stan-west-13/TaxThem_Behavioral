@@ -174,7 +174,7 @@ ggsave("Figures/Mean_Acc.png")
 
 ## Accuracy-response time tradeoff
 
-ggplot(plot_df, aes(x = mean_rt_block_wordtype_ppid, y = accuracy_block_wordtype_ppid, color = word_type))+
+ggplot(plot_df, aes(x = mean_rt_trialType, y = accuracy_trialType, color = word_type))+
   geom_point()+
   geom_smooth(method = "lm")+
   facet_grid(word_type~block)
