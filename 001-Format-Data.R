@@ -77,8 +77,12 @@ summary_stats <- files_appended_factored %>%
   ungroup() %>%
   group_by(block,word_type) %>%
   mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(22),
+<<<<<<< HEAD
          se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22),
          n = n())
+=======
+         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22))
+>>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
 
 
 ## Dataframe for plotting descriptives
@@ -118,63 +122,79 @@ ggplot(plot_df %>%
 
 
 ## Response time by word type and block
-ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block,pattern = inhib_type))+
+ggplot(plot_df, aes(x = block, y = mean_rt_block_wordtype_ppid, fill = word_type,pattern = inhib_type))+
   geom_bar_pattern(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5,
                    pattern_fill = "black",
                    pattern_alpha = 0.25)+
-  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"))+
-  guides(pattern = "none")+
+  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"),guide="none")+
+  guides(fill = guide_legend(override.aes = list(pattern = c("none", "none"))))+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
+<<<<<<< HEAD
                   mutate(m = mean(mean_rt_block_wordtype_ppid)),
                 aes(ymin = m - se_rt, ymax = m + se_rt ), 
                 position = position_dodge(0.9),
                 width = 0.3,
                 size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
+=======
+                  mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.3,size = 1)+
+  geom_point(aes(color = word_type),position = position_jitterdodge(),show.legend = F)+
+>>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
   labs(title = "Mean Response Time",
-       x = "Word Pair Type",
+       x = "Condition",
        y = "Mean Response Time",
-       fill = "Condition")+
+       fill = "Word Type")+
   theme(legend.position = c(0.5,0.7),
         legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
         text = element_text(size = 18),
         legend.key.size = unit(0.25,"cm"),
         rect = element_rect(fill= "transparent"))+
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_x_discrete(label = c("Thematic","Taxonomic"))
 ggsave("Figures/Mean_rt.png")
 
 ## Accuracy by word type and block
-ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = block,pattern = inhib_type))+
+ggplot(plot_df, aes(x = block, y = accuracy_block_wordtype_ppid, fill = word_type,pattern = inhib_type))+
   geom_bar_pattern(stat = "summary", fun = "mean", position = "dodge", alpha = 0.5,
                    pattern_fill = "black",
                    pattern_alpha = 0.25)+
-  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"))+
-  guides(pattern = "none")+
+  scale_pattern_manual(values = c(inhib = "stripe", stand = "none"),guide="none")+
+  guides(fill = guide_legend(override.aes = list(pattern = c("none", "none"))))+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
+<<<<<<< HEAD
                   mutate(m = mean(accuracy_block_wordtype_ppid)),
                 aes(ymin = m - se_acc, ymax = m + se_acc ), 
                 position = position_dodge(0.9),
                 width = 0.3,
                 size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
+=======
+                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.3,size = 1)+
+  geom_point(aes(color = word_type),position = position_jitterdodge(),show.legend = F)+
+>>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
   labs(title = "Accuracy",
+<<<<<<< HEAD
        x = "Word Pair Type",
+=======
+       x = "Condition",
+>>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
        y = "Mean Accuracy",
-       fill = "Condition")+
+       fill = "Word Type")+
   theme(legend.position = c(0.5,0.2,4),
         legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solid'),
         text = element_text(size = 18),
         legend.key.size = unit(0.25,"cm"),
         rect = element_rect(fill = "transparent"))+
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5))+
+  scale_x_discrete(label = c("Thematic","Taxonomic"))
 ggsave("Figures/Mean_Acc.png")
 
 
