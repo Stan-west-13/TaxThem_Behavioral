@@ -77,12 +77,8 @@ summary_stats <- files_appended_factored %>%
   ungroup() %>%
   group_by(block,word_type) %>%
   mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(22),
-<<<<<<< HEAD
          se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22),
          n = n())
-=======
-         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22))
->>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
 
 
 ## Dataframe for plotting descriptives
@@ -130,17 +126,13 @@ ggplot(plot_df, aes(x = block, y = mean_rt_block_wordtype_ppid, fill = word_type
   guides(fill = guide_legend(override.aes = list(pattern = c("none", "none"))))+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
-<<<<<<< HEAD
                   mutate(m = mean(mean_rt_block_wordtype_ppid)),
                 aes(ymin = m - se_rt, ymax = m + se_rt ), 
                 position = position_dodge(0.9),
                 width = 0.3,
                 size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
-=======
-                  mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.3,size = 1)+
-  geom_point(aes(color = word_type),position = position_jitterdodge(),show.legend = F)+
->>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
+
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
@@ -166,26 +158,17 @@ ggplot(plot_df, aes(x = block, y = accuracy_block_wordtype_ppid, fill = word_typ
   guides(fill = guide_legend(override.aes = list(pattern = c("none", "none"))))+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
-<<<<<<< HEAD
                   mutate(m = mean(accuracy_block_wordtype_ppid)),
                 aes(ymin = m - se_acc, ymax = m + se_acc ), 
                 position = position_dodge(0.9),
                 width = 0.3,
                 size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
-=======
-                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.3,size = 1)+
-  geom_point(aes(color = word_type),position = position_jitterdodge(),show.legend = F)+
->>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
   labs(title = "Accuracy",
-<<<<<<< HEAD
-       x = "Word Pair Type",
-=======
        x = "Condition",
->>>>>>> bb29f058df740139c6508a50bfb1fe62f33aaa2b
        y = "Mean Accuracy",
        fill = "Word Type")+
   theme(legend.position = c(0.5,0.2,4),
