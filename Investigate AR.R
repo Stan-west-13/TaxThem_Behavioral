@@ -11,4 +11,8 @@ df <- map_dfr(sheets, function(x){
 })
 
 
-total_average <- mean(df$`Total Percent Rejected`[df$Bin == "Total"])
+summ_table <- df %>%
+  group_by(Bin) %>%
+  reframe(m = mean(`Total Percent Rejected`, na.rm = T),
+            sd = sd(`Total Percent Rejected`, na.rm = T),
+            range = range(`Total Percent Rejected`, na.rm = T))
