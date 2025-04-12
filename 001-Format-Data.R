@@ -76,8 +76,9 @@ summary_stats <- files_appended_factored %>%
          mean_rt_block_wordtype_ppid = mean(rt)) %>%
   ungroup() %>%
   group_by(block,word_type) %>%
-  mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(n()),
-         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(n()))
+  mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(22),
+         se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22),
+         n = n())
 
 
 ## Dataframe for plotting descriptives
@@ -125,7 +126,11 @@ ggplot(plot_df, aes(x = word_type, y = mean_rt_block_wordtype_ppid, fill = block
   guides(pattern = "none")+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
-                  mutate(m = mean(mean_rt_block_wordtype_ppid)),aes(ymin = m - se_rt, ymax = m + se_rt ), position = position_dodge(0.9),width = 0.5)+
+                  mutate(m = mean(mean_rt_block_wordtype_ppid)),
+                aes(ymin = m - se_rt, ymax = m + se_rt ), 
+                position = position_dodge(0.9),
+                width = 0.3,
+                size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
@@ -151,12 +156,16 @@ ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, fill = bloc
   guides(pattern = "none")+
   geom_errorbar(data = plot_df %>%
                   group_by(word_type, block) %>%
-                  mutate(m = mean(accuracy_block_wordtype_ppid)),aes(ymin = m - se_acc, ymax = m + se_acc ), position = position_dodge(0.9),width = 0.3)+
+                  mutate(m = mean(accuracy_block_wordtype_ppid)),
+                aes(ymin = m - se_acc, ymax = m + se_acc ), 
+                position = position_dodge(0.9),
+                width = 0.3,
+                size = 1)+
   geom_point(aes(color = block),position = position_jitterdodge(),show.legend = F)+
   scale_fill_manual(labels = c("Thematic", "Taxonomic") ,values = c("#497882","#2A436E"))+
   scale_color_manual(values = c("#497882","#2A436E"))+
   theme_bw()+
-  labs(title = "Hit Rate",
+  labs(title = "Accuracy",
        x = "Word Pair Type",
        y = "Mean Accuracy",
        fill = "Condition")+
