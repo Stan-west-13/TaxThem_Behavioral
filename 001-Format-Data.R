@@ -2,6 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(ez)
 library(ggpattern)
+library(effsize)
 source("R_functions/RM-2by2-ANOVA/rm_2by2_anova.R")
 files_appended <- readRDS("data/files_appended.rds")
 
@@ -62,23 +63,28 @@ files_appended_factored <- files_appended %>%
 #####################################
 ## Computing participant and trialType-wise RT and accuracy means
 summary_stats <- files_appended_factored %>%
+  mutate(rt10 = log10(rt)) %>%
   group_by(PPID) %>%
   mutate(accuracy_participant = sum(is_correct == TRUE)/n(),
          mean_rt_participant = mean(rt),
+         mean_rt_participant10 = mean(rt10),
          z_rt_pp = (rt - mean_rt_participant)/sd(rt)) %>%
   ungroup() %>%
   #filter(rt > 150, z_rt_pp < 3) %>%
   group_by(PPID,trial_condition) %>%
   mutate(accuracy_trialType = sum(is_correct == TRUE)/n(),
-         mean_rt_trialType = mean(rt)) %>%
+         mean_rt_trialType = mean(rt),
+         mean_rt_trialType10 = mean(rt10)) %>%
   ungroup() %>%
   group_by(PPID,block,word_type) %>%
   mutate(accuracy_block_wordtype_ppid = sum(is_correct == TRUE)/n(),
-         mean_rt_block_wordtype_ppid = mean(rt)) %>%
+         mean_rt_block_wordtype_ppid = mean(rt),
+         mean_rt_block_wordtype_ppid10 = mean(rt10)) %>%
   ungroup() %>%
   group_by(block,word_type) %>%
   mutate(se_acc = sd(accuracy_block_wordtype_ppid)/sqrt(22),
          se_rt = sd(mean_rt_block_wordtype_ppid)/sqrt(22),
+         se_rt10 = sd(mean_rt_block_wordtype_ppid10)/sqrt(22),
          n = n())
 
 
@@ -141,7 +147,7 @@ ggplot(plot_df, aes(x = block, y = mean_rt_block_wordtype_ppid, fill = word_type
        y = "Mean Response Time",
        fill = "Word Type")+
   theme(legend.position = c(0.5,0.7),
-        legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype='solhttp://127.0.0.1:43029/graphics/0a2bc71b-d4ba-4531-91e4-edef1511721f.pngid'),
+        legend.background = element_rect(colour = 'black', fill = 'grey90', size = 1, linetype=1),
         text = element_text(size = 18),
         legend.key.size = unit(0.25,"cm"),
         rect = element_rect(fill= "transparent"))+
@@ -215,6 +221,11 @@ param$title <- sprintf("%s x %s interaction", param$Fc2.label, param$Fc1.label)
 result <- rm_2by2_anova(summary_stats,columns,param)
 
 
+ezANOVA(data = summary_stats,
+        dv = accuracy_block_wordtype_ppid,
+        wid = PPID,
+        within = .(block, word_type))
+
 ## Accuracy interaction plot
 ggplot(plot_df, aes(x = word_type, y = accuracy_block_wordtype_ppid, color = block))+
   geom_point(stat = "summary", fun =  'mean',size=5)+
@@ -257,7 +268,7 @@ summary_stats %>%
 # From the dataset, specify subject ID, Dependent Variable, and 2 within-subject Factors 
 columns <- list(
   sID = "PPID",     # subject ID
-  DV  = "mean_rt_block_wordtype_ppid", # dependent variable
+  DV  = "mean_rt_block_wordtype_ppid10", # dependent variable
   Fc1 = "block",      # within-subj factor 1
   Fc2 = "word_type"   # within-subj factor 2
 )
@@ -543,4 +554,47 @@ pairwise_t_test(data = summary_stats, mean_rt_block_wordtype_ppid~word_type, pai
 
 
 
+summary_stats %>%
+  select(accuracy_block_wordtype_ppid, block,word_type) %>%
+  unique() %>%
+  group_by(block) %>%
+  mutate(m_diff = mean(diff(accuracy_block_wordtype_ppid)),
+         s_diff = sd(diff(accuracy_block_wordtype_ppid)),
+         d = m_diff/s_diff) %>%
+  select(-accuracy_block_wordtype_ppid) %>%
+  unique()
+
+summary_stats %>%
+  filter() %>%
+  group_by(word_type) %>%
+  cohens_d(accuracy_block_wordtype_ppid~block,paired = T)
+
+summary_stats <- summary_stats %>% ungroup()
+split_block<- split(summary_stats, summary_stats$block)
+map(split_block, function(x){
+  return <- list()
+  return$tax_them <- cohen.d(x[x$word_type =='thematic',]$accuracy_block_wordtype_ppid,x[x$word_type =='taxonomic',]$accuracy_block_wordtype_ppid)
+  return$tax_fill <- cohen.d(x[x$word_type =='taxonomic',]$accuracy_block_wordtype_ppid,x[x$word_type =='filler',]$accuracy_block_wordtype_ppid)
+  return$them_fill <- cohen.d(x[x$word_type =='thematic',]$accuracy_block_wordtype_ppid,x[x$word_type =='filler',]$accuracy_block_wordtype_ppid)
+  return(return)
+})
+
+
+split_wt<- split(summary_stats, summary_stats$word_type)
+map(split_wt, function(x){
+  return <- list()
+  return$tax_them <- cohen.d(x[x$block =='Thematic_inhib',]$accuracy_block_wordtype_ppid,
+                             x[x$block =='Taxonomic_inhib',]$accuracy_block_wordtype_ppid,
+                             paired = T)
+  return(return)
+})
+
+
+split_block$Taxonomic_inhib %>%
+  select(PPID,block,word_type,accuracy_block_wordtype_ppid) %>%
+  pivot_wider(names_from = word_type,
+              values_from = accuracy_block_wordtype_ppid)
+
+
+cohen.d(split_block$Taxonomic_inhib[split_block$Taxonomic_inhib$word_type == "thematic",]$accuracy_block_wordtype_ppid,split_block$Taxonomic_inhib[split_block$Taxonomic_inhib$word_type == "taxonomic",]$accuracy_block_wordtype_ppid)
 
