@@ -168,7 +168,7 @@ ggplot(plot_df, aes(x = block, y = accuracy_block_wordtype_ppid, fill = word_typ
         rect = element_rect(fill = "transparent"))+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_x_discrete(label = c("Thematic","Taxonomic"))
-ggsave("Figures/Mean_Acc.png")
+ggsave("Figures/Mean_Acc.png",dpi = 72)
 
 
 
