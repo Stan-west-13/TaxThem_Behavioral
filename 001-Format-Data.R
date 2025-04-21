@@ -3,7 +3,7 @@ library(ggplot2)
 library(ez)
 library(ggpattern)
 library(effsize)
-source("R_functions/RM-2by2-ANOVA/rm_2by2_anova.R")
+source("R_functions/rm_2by2_anova.R")
 files_appended <- readRDS("data/files_appended.rds")
 
 ## Values of 2 indicate that the participant pressed the "unsure" button. We are 
