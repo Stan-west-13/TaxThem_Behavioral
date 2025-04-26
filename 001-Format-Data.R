@@ -1,8 +1,8 @@
 library(dplyr)
 library(ggplot2)
 library(ez)
+library(purrr)
 library(ggpattern)
-library(effsize)
 source("rm_2by2_anova.R")
 files_appended <- readRDS("data/files_appended.rds")
 
@@ -286,7 +286,7 @@ param$title <- sprintf("%s x %s interaction", param$Fc2.label, param$Fc1.label)
 result <- rm_2by2_anova(summary_stats,columns,param)
 
 m_rt <- ezANOVA(data = summary_stats,
-                 dv = mean_rt_block_wordtype_ppid,
+                 dv = mean_rt_block_wordtype_ppid10,
                  within = .(block, word_type),
                  wid = PPID)
 m_rt

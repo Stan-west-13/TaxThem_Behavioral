@@ -71,7 +71,8 @@ map(d_electrode_split, function(x){
                within = condition,
                dv = mean_amp)
   t <- pairwise_t_test(cont,mean_amp~condition, paired = T, pool.sd = F,p.adjust.method = "bonferroni")
-  return(list(ANOVAs = m,t = t))
+  d <- cohens_d(cont, mean_amp~condition, paired = T)
+  return(list(ANOVAs = m,t = t,d = d))
 })
 
 
