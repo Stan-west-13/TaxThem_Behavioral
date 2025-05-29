@@ -8,7 +8,7 @@ library(rstatix)
 ## Load in data and change names
 # condition - is it inhibition, standard, or filler trial
 # word-type - is it taxonomic, thematic, or all collapsed?
-d <- read.table("data/Pz_Cz_CPz_300_500.txt", header = T) %>%
+d <- read.table("data/Pz_Cz_CPz_350_550.txt", header = T) %>%
   pivot_longer(cols = starts_with("bin"),
                names_to = c("bin","electrode"),
                values_to = "mean_amp",
